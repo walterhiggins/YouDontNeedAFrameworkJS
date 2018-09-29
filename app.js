@@ -23,18 +23,30 @@ function update(fn, selector) {
 
 window.onhashchange = route;
 
-var items = [];
+function load() {
+  var raw = localStorage.getItem("items");
+  if (raw) {
+    return JSON.parse(raw);
+  }
+}
+function save(items) {
+  localStorage.setItem("items", JSON.stringify(items));
+}
+var items = load() || [];
 var filter = () => true;
 function addItem() {
   items.push({ done: false, text: document.querySelector("#todotext").value });
+  save(items);
   update(home, "#view");
 }
 function removeItem(index) {
   items.splice(index, 1);
+  save(items);
   update(home, "#view");
 }
 function toggleItem(done, index) {
   items[index].done = done;
+  save(items);
   update(home, "#view");
 }
 function all() {
