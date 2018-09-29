@@ -1,0 +1,15 @@
+body {
+    margin: 0;
+    background: lightgray;
+    font-family: monospace;
+}
+
+nav {
+    background: #333;
+    color: yellow;
+    padding: 1em;
+    border-bottom: 5px solid blue;
+}
+div.wrapper {
+    padding: 0em 1em;
+}
