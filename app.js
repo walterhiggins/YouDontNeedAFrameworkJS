@@ -1,3 +1,6 @@
+/* ------------------------------------------------------------------------
+   generic 'framework' code starts here 
+   ------------------------------------------------------------------------ */
 Array.prototype.mapj = function(fn) {
   return this.map(fn).join("");
 };
@@ -23,6 +26,10 @@ function update(fn, selector) {
 
 window.onhashchange = route;
 
+/* ------------------------------------------------------------------------
+   Application code starts here
+   ------------------------------------------------------------------------ */
+
 function load() {
   var raw = localStorage.getItem("items");
   if (raw) {
@@ -35,16 +42,23 @@ function save(items) {
 var items = load() || [];
 var filter = () => true;
 function addItem() {
-  items.push({ done: false, text: document.querySelector("#todotext").value });
+  let uid = new Date().getTime();
+  items.push({
+    done: false,
+    text: document.querySelector("#todotext").value,
+    uid: uid
+  });
   save(items);
   update(home, "#view");
 }
-function removeItem(index) {
+function removeItem(uid) {
+  let index = items.findIndex(item => item.uid == uid);
   items.splice(index, 1);
   save(items);
   update(home, "#view");
 }
-function toggleItem(done, index) {
+function toggleItem(done, uid) {
+  let index = items.findIndex(item => item.uid == uid);
   items[index].done = done;
   save(items);
   update(home, "#view");
@@ -65,27 +79,26 @@ window.onload = function() {
   route(home);
 };
 
-function home() {
-  return `
+const home = () => `
 <nav>To Do List</nav>
-  <div class="wrapper">
-    <h1>Simple To-Do List</h1>
-    <form onsubmit="return addItem()">
-      <input type="text" id="todotext"/>
-      <input type="submit" value="Add Item"/>
-    </form>
-    <ol>
-    ${items.filter(filter).mapj(
-      (item, index) => `
-	<li>
-	<input type="checkbox" onchange="toggleItem(this.checked,${index})" ${item.done
-        ? "checked"
-        : ""}/>${item.text}
-	<button onclick="removeItem(${index})">X</button></li>
+<div class="wrapper">
+  <h1>Simple To-Do List</h1>
+  <form onsubmit="return addItem()">
+    <input type="text" id="todotext"/>
+    <input type="submit" value="Add Item"/>
+  </form>
+  <ol>
+  ${items.filter(filter).mapj(
+    item => `
+    <li>
+      <input type="checkbox" onchange="toggleItem(this.checked,${item.uid})" ${item.done
+      ? "checked"
+      : ""}/>${item.text}
+      <button onclick="removeItem(${item.uid})">X</button>
+    </li>
 `
-    )}
-    </ol>
-    <a href="#all">All</a> <a href="#active">Active</a> <a href="#completed">Completed</a>
-  </div>
+  )}
+  </ol>
+  <a href="#all">All</a> <a href="#active">Active</a> <a href="#completed">Completed</a>
+</div>
   `;
-}
