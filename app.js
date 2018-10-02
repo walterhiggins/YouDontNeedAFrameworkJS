@@ -6,25 +6,40 @@ Array.prototype.mapj = function(fn) {
 };
 var euc = encodeURIComponent;
 
-function route(defaultFn) {
-  if (defaultFn && defaultFn.constructor == Function) {
-    this.defaultFn = defaultFn;
+function hashrouter(evt) {
+  var newURL = evt && evt.newURL ? new URL(evt.newURL) : location;
+  var newParts = newURL.hash.split("/");
+  if (newParts.length == 0) {
+    return;
   }
-  var parts = location.hash.split("/");
-  var fn = window[parts[0].substring(1)];
-  var html = null;
-  if (fn) {
-    update(() => fn.apply(null, parts.slice(1)), "#view");
-  } else {
-    update(() => this.defaultFn.apply(null, parts.slice(1)), "#view");
+
+  var newFn = window[newParts[0].substring(1)];
+  if (!newFn) {
+    if (evt.constructor == String) {
+      newFn = window[evt.substring(1)];
+    }
   }
+  update("#view", function() {
+    return newFn.apply(null, newParts.slice(1).map(decodeURIComponent));
+  });
 }
-function update(fn, selector) {
-  var html = fn();
-  document.querySelector(selector).innerHTML = html;
+/* Function naming for attaching handlers to elements */
+(function(exports) {
+  var fnCounter = 0;
+  exports.__fns = exports.__fns || {};
+  function fname(fn) {
+    var name = `_${fnCounter++}`;
+    exports.__fns[name] = fn;
+    return `__fns.${name}`;
+  }
+  exports.fname = fname;
+})(window);
+
+function update(view, fn) {
+  document.querySelector(view).innerHTML = fn();
 }
 
-window.onhashchange = route;
+window.onhashchange = hashrouter;
 
 /* ------------------------------------------------------------------------
    Application code starts here
@@ -76,7 +91,7 @@ function completed() {
   return home();
 }
 window.onload = function() {
-  route(home);
+  hashrouter("#home");
 };
 
 const home = () => `
